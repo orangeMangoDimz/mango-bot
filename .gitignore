@@ -1,0 +1,32 @@
+# Node.js dependencies
+node_modules/
+
+# Lock files
+bun.lock
+package-lock.json
+yarn.lock
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Environment variables
+.env
+
+# Build output
+dist/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# IDE specific files
+.vscode/
+.idea/
+*.swp
+
+# Miscellaneous
+*.tmp
+*.bak
+*.old
