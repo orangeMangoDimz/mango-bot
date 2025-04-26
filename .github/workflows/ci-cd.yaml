@@ -1,0 +1,129 @@
+name: Discord Bot CI/CD with bun
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  BUN_VERSION: ' 1.2.10'
+  APP_DIR: ${{ vars.APP_DIR }}
+  PM2_APP_NAME: ${{ vars.PM2_APP_NAME }}
+  REPO_URL: 'https://github.com/${{ github.repository }}.git'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Bun
+      uses: oven-sh/setup-bun@v1
+      with:
+        bun-version: ${{ env.BUN_VERSION }}
+    
+    - name: Install dependencies
+      run: bun install
+      
+    - name: Run tests
+      run: bun test
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Deploy to Production
+      uses: appleboy/ssh-action@v1
+      with:
+        host: ${{ secrets.SERVER_HOST }}
+        username: ${{ secrets.SERVER_USERNAME }}
+        key: ${{ secrets.SERVER_SSH_KEY }}
+        script: |
+          set -euo pipefail
+          echo "🚀 Starting Discord bot deployment..."
+          
+          # Create app directory
+          mkdir -p ${{ env.APP_DIR }}
+          cd ${{ env.APP_DIR }}
+          
+          # Install Bun if not exists
+          if ! command -v bun &> /dev/null; then
+            echo "⬇️ Installing Bun runtime..."
+            # First ensure we have curl
+            sudo apt-get update && sudo apt-get install -y curl
+            curl -fsSL https://bun.sh/install | bash
+            echo 'export BUN_INSTALL="$HOME/.bun"' >> ~/.bashrc
+            echo 'export PATH="$BUN_INSTALL/bin:$PATH"' >> ~/.bashrc
+            source ~/.bashrc
+          fi
+          
+          # Install Node.js if not present (PM2 dependency)
+          if ! command -v node &> /dev/null; then
+            echo "⬇️ Installing Node.js as PM2 dependency..."
+            sudo apt-get update && sudo apt-get install -y ca-certificates curl gnupg
+            sudo mkdir -p /etc/apt/keyrings
+            curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
+            echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_20.x nodistro main" | sudo tee /etc/apt/sources.list.d/nodesource.list
+            sudo apt-get update && sudo apt-get install nodejs -y
+          fi
+          
+          # Clone/update repository
+          if [ ! -d .git ]; then
+            echo "🔄 Cloning fresh repository..."
+            git clone ${{ env.REPO_URL }} .
+          else
+            echo "🔄 Updating existing repository..."
+            git fetch origin main
+            git reset --hard origin/main
+          fi
+          
+          # Install dependencies
+          echo "📦 Installing dependencies..."
+          bun install --production
+          
+          # Install PM2 properly with Bun
+          echo "⬇️ Installing PM2..."
+          if ! command -v pm2 &> /dev/null; then
+            bunx pm2 install
+            # Ensure PM2 is in PATH
+            echo 'export PATH="$HOME/.bun/bin:$PATH"' >> ~/.bashrc
+            source ~/.bashrc
+          fi
+          
+          # Build TypeScript
+          echo "🔨 Building TypeScript..."
+          bun build ./src/index.ts --outfile ./dist/index.js --target node --format cjs
+          
+          # Set permissions
+          echo "🔒 Setting permissions..."
+          chown -R ${{ secrets.SERVER_USERNAME }}:${{ secrets.SERVER_USERNAME }} ${{ env.APP_DIR }}
+          chmod -R o-rwx ${{ env.APP_DIR }}
+          
+          # PM2 process management with ecosystem file
+          echo "🔄 Managing PM2 process..."
+          export PATH="$HOME/.bun/bin:$PATH"
+          
+          if [ ! -f "ecosystem.config.js" ]; then
+            echo "❌ Error: ecosystem.config.js not found!"
+            exit 1
+          fi
+
+          # Check if PM2 daemon is running
+          if ! pm2 ping &> /dev/null; then
+            echo "🔄 Starting PM2 daemon..."
+            pm2 startup
+            sudo env PATH=$PATH:$HOME/.bun/bin pm2 startup -u ${{ secrets.SERVER_USERNAME }} --hp $HOME
+          fi
+          
+          # Deploy with PM2
+          pm2 reload ecosystem.config.js --env production || pm2 start ecosystem.config.js --env production
+          pm2 save
+          
+          echo "✅ Deployment successful! Bot is running with PM2 🚀"
+          echo "📊 PM2 Status:"
+          pm2 list
