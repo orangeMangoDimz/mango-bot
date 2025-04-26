@@ -95,7 +95,7 @@ jobs:
           # Set permissions
           echo "🔒 Setting permissions..."
           chown -R ${{ secrets.SERVER_USERNAME }}:${{ secrets.SERVER_USERNAME }} ${{ env.APP_DIR }}
-          chmod -R o-rwx ${{ env.APP_DIR }}
+          sudo chmod -R 765 ${{ env.APP_DIR }}
           
           # PM2 process management with ecosystem file
           echo "🔄 Managing PM2 process..."
