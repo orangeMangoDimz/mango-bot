@@ -85,10 +85,9 @@ jobs:
           echo "⬇️ Installing PM2..."
           if ! command -v pm2 &> /dev/null; then
             bun add -g pm2
-            echo 'export PATH="$HOME/.bun/bin:$PATH"' >> ~/.bashrc
-            source ~/.bashrc
-          fi
-          
+            export PATH="$HOME/.bun/bin:$PATH"
+          fi 
+
           # Build TypeScript
           echo "🔨 Building TypeScript..."
           bun build ./src/index.ts --outfile ./dist/index.js --target node --format cjs
