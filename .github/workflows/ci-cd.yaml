@@ -55,21 +55,16 @@ jobs:
           if ! command -v bun &> /dev/null; then
             echo "⬇️ Installing Bun runtime..."
             # First ensure we have curl
-            sudo apt-get update && sudo apt-get install -y curl
             curl -fsSL https://bun.sh/install | bash
-            echo 'export BUN_INSTALL="$HOME/.bun"' >> ~/.bashrc
-            echo 'export PATH="$BUN_INSTALL/bin:$PATH"' >> ~/.bashrc
             source ~/.bashrc
           fi
           
           # Install Node.js if not present (PM2 dependency)
           if ! command -v node &> /dev/null; then
             echo "⬇️ Installing Node.js as PM2 dependency..."
-            sudo apt-get update && sudo apt-get install -y ca-certificates curl gnupg
-            sudo mkdir -p /etc/apt/keyrings
-            curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
-            echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_20.x nodistro main" | sudo tee /etc/apt/sources.list.d/nodesource.list
-            sudo apt-get update && sudo apt-get install nodejs -y
+            curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
+            \. "$HOME/.nvm/nvm.sh"
+            nvm install 22
           fi
           
           # Clone/update repository
