@@ -54,9 +54,9 @@ jobs:
           # Install Bun if not exists
           if ! command -v bun &> /dev/null; then
             echo "⬇️ Installing Bun runtime..."
-            # First ensure we have curl
-            curl -fsSL https://bun.sh/install | bash
-            source ~/.bashrc
+            curl -fsSL https://bun.sh/install | bash -s "bun-v${{ env.BUN_VERSION }}"
+            export BUN_INSTALL="$HOME/.bun"
+            export PATH="$BUN_INSTALL/bin:$PATH"
           fi
           
           # Install Node.js if not present (PM2 dependency)
