@@ -1,7 +1,7 @@
 import { Client, Events, GatewayIntentBits } from "discord.js";
 import { config } from "./config";
-import { baseCommands } from "./src/command";
 import { request } from "undici";
+import { baseCommands, registerCommands } from "./command";
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
@@ -18,11 +18,9 @@ client.on(Events.InteractionCreate, async (interaction) => {
             const url: string = `${config.BE_DOMAIN}/${command.url}`
             const response = await request(url)
             const dataJson = await response.body.json()
-            console.log("dataJSon:", dataJson)
 
             if (typeof dataJson === 'object' && dataJson !== null && "data" in dataJson) {
                 const data: string = dataJson.data as string;
-                console.log("Data length:", data.length);
 
                 // Split the message into paragraphs (assuming paragraphs are separated by double newlines)
                 const paragraphs = data.split('\n\n').filter(p => p.trim().length > 0);
@@ -74,4 +72,6 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
 });
 
-client.login(config.TOKEN);
+client.login(config.TOKEN)
+    .then(() => registerCommands())
+    .catch(console.error);
