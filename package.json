@@ -2,8 +2,11 @@
     "name": "mango-bot",
     "version": "1.0.0",
     "scripts": {
-        "dev": "NODE_ENV=development bun run index.ts",
-        "start": "NODE_ENV=production bun run index.ts",
+        "dev": "NODE_ENV=development bun run src/index.ts",
+        "production": "NODE_ENV=production APP_NAME=dev pm2 start ecosystem.config.js --name 'discord-production'",
+        "log_production": "pm2 logs discord-production",
+        "stop_production": "pm2 delete discord-production",
+        "custom_build": "bun build ./src/ --outdir ./dist/ --target node --format cjs",
         "prettier-format": "prettier 'src/**/*.ts' --write"
     },
     "dependencies": {
