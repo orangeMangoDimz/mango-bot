@@ -90,7 +90,7 @@ jobs:
 
           # Build TypeScript
           echo "🔨 Building TypeScript..."
-          bun build ./src/index.ts --outfile ./dist/index.js --target node --format cjs
+          bun custom-build
           
           # Set permissions
           echo "🔒 Setting permissions..."
@@ -114,8 +114,7 @@ jobs:
           fi
           
           # Deploy with PM2
-          pm2 reload ecosystem.config.js --env production || pm2 start ecosystem.config.js --env production
-          pm2 save
+          bun production
           
           echo "✅ Deployment successful! Bot is running with PM2 🚀"
           echo "📊 PM2 Status:"
