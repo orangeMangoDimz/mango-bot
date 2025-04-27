@@ -6,7 +6,7 @@
         "register-command": "NODE_ENV=development bun run src/command.ts",
         "production": "NODE_ENV=production APP_NAME=dev pm2 reload ecosystem.config.js --name 'discord-production'",
         "log-production": "pm2 logs discord-production",
-        "stop-production": "pm2 delete discord-production",
+        "stop-production": "pm2 flush; pm2 delete all",
         "custom-build": "bun build ./src/ --outdir ./dist/ --target node --format cjs",
         "prettier-format": "prettier 'src/**/*.ts' --write"
     },

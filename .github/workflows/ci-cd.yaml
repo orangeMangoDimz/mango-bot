@@ -113,6 +113,9 @@ jobs:
             sudo env PATH=$PATH:$HOME/.bun/bin pm2 startup -u ${{ secrets.SERVER_USERNAME }} --hp $HOME
           fi
           
+          # Delete all running app process and cache
+          bun stop-production
+
           # Deploy with PM2
           bun production
           
