@@ -36,20 +36,23 @@ const requiredEnv: Array<EnvType> = [
     },
 ];
 
-const loadEnv = (): Record<string, string> => {
+const _get_env_mode = (): string => {
     const env_mode: string | undefined = process.env.NODE_ENV;
     if (!env_mode) throw new Error(ENV_ERROR_MSG.NOT_CONFIGURED);
 
     let env_name: string = "";
-
     if (env_mode.toLowerCase() === "development") {
         env_name = ".env.development";
-    } else if (env_mode.toLowerCase() === "porfuction") {
+    } else if (env_mode.toLowerCase() === "production") {
         env_name = ".env.production";
     } else {
         throw new Error(ENV_ERROR_MSG.UNKNOWN_MODE_ENV);
     }
+    return env_name;
+};
 
+const loadEnv = (): Record<string, string> => {
+    const env_name: string = _get_env_mode()
     dotenv.config({ path: path.resolve(__dirname, env_name) });
 
     const envConfig: Record<string, string> = {};
