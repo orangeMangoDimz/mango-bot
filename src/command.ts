@@ -7,6 +7,11 @@ export const baseCommands = [
         url: "get-today-news",
         description: "Get today news",
     },
+    {
+        name: "get-profile",
+        url: "get-profile",
+        description: "Get discord profile",
+    },
 ];
 
 const commands = baseCommands.map(({ url, ...rest }) => rest);
