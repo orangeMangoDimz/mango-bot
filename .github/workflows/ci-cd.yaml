@@ -114,8 +114,13 @@ jobs:
             sudo env PATH=$PATH:$HOME/.bun/bin pm2 startup -u ${{ secrets.SERVER_USERNAME }} --hp $HOME
           fi
           
-          # Delete all running app process and cache
-          bun stop-production
+          # Check if production app is running before stopping
+          if pm2 list | grep -q "discord-production"; then
+            echo "🛑 Stopping existing production bot..."
+            bun stop-production
+          else
+            echo "ℹ️ No production bot currently running"
+          fi
 
           # Deploy with PM2
           bun production
@@ -208,8 +213,13 @@ jobs:
             sudo env PATH=$PATH:$HOME/.bun/bin pm2 startup -u ${{ secrets.SERVER_USERNAME }} --hp $HOME
           fi
           
-          # Delete all running staging app process and cache
-          bun stop-staging
+          # Check if staging app is running before stopping
+          if pm2 list | grep -q "discord-staging"; then
+            echo "🛑 Stopping existing staging bot..."
+            bun stop-staging
+          else
+            echo "ℹ️ No staging bot currently running"
+          fi
 
           # Deploy with PM2
           bun staging
