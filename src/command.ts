@@ -17,6 +17,13 @@ export const baseCommands = [
         is_repeat: false,
         repeat_cron_time: "",
     },
+    {
+        name: "get-today-holidays",
+        url: "get-today-month-holiday",
+        description: "Get this month holidays",
+        is_repeat: false,
+        repeat_cron_time: "",
+    },
 ];
 
 const commands = baseCommands.map(({ url, is_repeat, repeat_cron_time,...rest }) => rest);
