@@ -9,6 +9,9 @@ let env_name = "";
 if (env_mode.toLowerCase() === "development") {
     app_name = "discord-dev"
     env_name = ".env.development";
+} else if (env_mode.toLowerCase() === "staging") {
+    app_name = "discord-staging"
+    env_name = ".env.staging";
 } else if (env_mode.toLowerCase() === "production") {
     app_name = "discord-production"
     env_name = ".env.production";
