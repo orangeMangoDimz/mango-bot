@@ -5,8 +5,10 @@
         "dev": "NODE_ENV=development bun run src/index.ts",
         "register-command": "NODE_ENV=development bun run src/command.ts",
         "production": "NODE_ENV=production pm2 reload ecosystem.config.js --name 'discord-production'",
+        "staging": "NODE_ENV=staging pm2 reload ecosystem.config.js --name 'discord-staging'",
         "log-production": "pm2 logs discord-production",
-        "stop-production": "pm2 flush; pm2 delete all",
+        "stop-production": "pm2 flush; pm2 delete discord-production",
+        "stop-staging": "pm2 flush; pm2 delete discord-staging",
         "custom-build": "bun build ./src/ --outdir ./dist/ --target node --format cjs",
         "prettier-format": "prettier 'src/**/*.ts' --write"
     },

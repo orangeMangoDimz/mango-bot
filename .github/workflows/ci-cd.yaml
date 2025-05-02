@@ -2,13 +2,14 @@ name: Discord Bot CI/CD with bun
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, staging ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, staging ]
 
 env:
-  BUN_VERSION: ' 1.2.10'
+  BUN_VERSION: '1.2.10'
   APP_DIR: ${{ vars.APP_DIR }}
+  STAGING_APP_DIR: ${{ vars.STAGING_APP_DIR || vars.APP_DIR + '-staging' }}
   PM2_APP_NAME: ${{ vars.PM2_APP_NAME }}
   REPO_URL: 'https://github.com/${{ github.repository }}.git'
 
@@ -29,7 +30,7 @@ jobs:
     - name: Run tests
       run: bun test
 
-  deploy:
+  deploy-production:
     needs: test
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
@@ -45,7 +46,7 @@ jobs:
         key: ${{ secrets.SERVER_SSH_KEY }}
         script: |
           set -euo pipefail
-          echo "🚀 Starting Discord bot deployment..."
+          echo "🚀 Starting Discord bot PRODUCTION deployment..."
           
           # Create app directory
           mkdir -p ${{ env.APP_DIR }}
@@ -122,3 +123,98 @@ jobs:
           echo "✅ Deployment successful! Bot is running with PM2 🚀"
           echo "📊 PM2 Status:"
           pm2 list
+
+  deploy-staging:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/staging'
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Deploy to Staging
+      uses: appleboy/ssh-action@v1
+      with:
+        host: ${{ secrets.SERVER_HOST }}
+        username: ${{ secrets.SERVER_USERNAME }}
+        key: ${{ secrets.SERVER_SSH_KEY }}
+        script: |
+          set -euo pipefail
+          echo "🚀 Starting Discord bot STAGING deployment..."
+          
+          # Create app directory
+          mkdir -p ${{ env.STAGING_APP_DIR }}
+          cd ${{ env.STAGING_APP_DIR }}
+          
+          # Install Bun if not exists
+          if ! command -v bun &> /dev/null; then
+            echo "⬇️ Installing Bun runtime..."
+            curl -fsSL https://bun.sh/install | bash
+            export BUN_INSTALL="$HOME/.bun"
+            export PATH="$BUN_INSTALL/bin:$PATH"
+          fi
+          
+          # Install Node.js if not present (PM2 dependency)
+          if ! command -v node &> /dev/null; then
+            echo "⬇️ Installing Node.js as PM2 dependency..."
+            curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
+            \. "$HOME/.nvm/nvm.sh"
+            nvm install 22
+          fi
+          
+          # Clone/update repository
+          if [ ! -d .git ]; then
+            echo "🔄 Cloning fresh repository..."
+            git clone ${{ env.REPO_URL }} .
+          else
+            echo "🔄 Updating existing repository..."
+            git fetch origin staging
+            git reset --hard origin/staging
+          fi
+          
+          # Install dependencies
+          echo "📦 Installing dependencies..."
+          bun install --production
+          
+          # Install PM2 properly with Bun
+          echo "⬇️ Installing PM2..."
+          if ! command -v pm2 &> /dev/null; then
+            bun add -g pm2
+            export PATH="$HOME/.bun/bin:$PATH"
+          fi 
+
+          # Build TypeScript
+          echo "🔨 Building TypeScript..."
+          bun custom-build
+          
+          # Set permissions
+          echo "🔒 Setting permissions..."
+          chown -R ${{ secrets.SERVER_USERNAME }}:${{ secrets.SERVER_USERNAME }} ${{ env.STAGING_APP_DIR }}
+          sudo chmod -R 765 ${{ env.STAGING_APP_DIR }}
+          
+          # PM2 process management with ecosystem file
+          echo "🔄 Managing PM2 process..."
+          export PATH="$HOME/.bun/bin:$PATH"
+          
+          if [ ! -f "ecosystem.config.js" ]; then
+            echo "❌ Error: ecosystem.config.js not found!"
+            exit 1
+          fi
+
+          # Check if PM2 daemon is running
+          if ! pm2 ping &> /dev/null; then
+            echo "🔄 Starting PM2 daemon..."
+            pm2 startup
+            sudo env PATH=$PATH:$HOME/.bun/bin pm2 startup -u ${{ secrets.SERVER_USERNAME }} --hp $HOME
+          fi
+          
+          # Delete all running staging app process and cache
+          bun stop-staging
+
+          # Deploy with PM2
+          bun staging
+          
+          echo "✅ STAGING deployment successful! Bot is running with PM2 🚀"
+          echo "📊 PM2 Status:"
+          pm2 list
+
