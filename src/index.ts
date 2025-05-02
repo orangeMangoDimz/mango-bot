@@ -1,4 +1,4 @@
-import { Client, Events, GatewayIntentBits } from "discord.js";
+import { CacheType, Channel, Client, Events, GatewayIntentBits, Interaction } from "discord.js";
 import { config } from "./config";
 import { request } from "undici";
 import { baseCommands, registerCommands } from "./command";
@@ -13,7 +13,7 @@ client.on(Events.ClientReady, (readyClient) => {
     const repeated_commnads  = baseCommands.filter(command => command.is_repeat)
     repeated_commnads.map(command => {
         cron.schedule(command.repeat_cron_time, async () => {
-            const channel = await client.channels.fetch("MAKE THIS DYNAMIC");
+            const channel: Channel | null = await client.channels.fetch("MAKE THIS DYNAMIC");
             if (!channel || !channel.isTextBased()) return;
 
             const url: string = `${config.BE_DOMAIN}/${command.url}`
@@ -25,7 +25,7 @@ client.on(Events.ClientReady, (readyClient) => {
 
 });
 
-client.on(Events.InteractionCreate, async (interaction) => {
+client.on(Events.InteractionCreate, async (interaction: Interaction<CacheType>) => {
     if (!interaction.isChatInputCommand()) return;
 
     for (const command of baseCommands) {
