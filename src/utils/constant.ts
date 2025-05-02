@@ -6,3 +6,6 @@ export const ENV_ERROR_MSG = {
   CLIENT_ID: "Set up client id first!",
   BE_DOMAIN: "Set up BE domain first!",
 };
+export const CRON_TAB = {
+    EVERYDAY_AT_1_PM: "0 13 * * *",
+}
