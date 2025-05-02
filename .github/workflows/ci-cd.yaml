@@ -9,7 +9,7 @@ on:
 env:
   BUN_VERSION: '1.2.10'
   APP_DIR: ${{ vars.APP_DIR }}
-  STAGING_APP_DIR: ${{ vars.STAGING_APP_DIR || vars.APP_DIR + '-staging' }}
+  STAGING_APP_DIR: ${{ vars.APP_DIR }}-staging
   PM2_APP_NAME: ${{ vars.PM2_APP_NAME }}
   REPO_URL: 'https://github.com/${{ github.repository }}.git'
 
@@ -120,7 +120,7 @@ jobs:
           # Deploy with PM2
           bun production
           
-          echo "✅ Deployment successful! Bot is running with PM2 🚀"
+          echo "✅ PRODUCTION deployment successful! Bot is running with PM2 🚀"
           echo "📊 PM2 Status:"
           pm2 list
 
@@ -217,4 +217,3 @@ jobs:
           echo "✅ STAGING deployment successful! Bot is running with PM2 🚀"
           echo "📊 PM2 Status:"
           pm2 list
-
