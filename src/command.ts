@@ -14,6 +14,16 @@ export const baseCommands = [
         }
     },
     {
+        name: LIST_COMMANDS.GET_TODAY_WORD,
+        url: "get-today-words",
+        description: "Get today words",
+        is_repeat: true,
+        repeat_cron_time: CRON_TAB.EVERY_MONDAY_AT_8_AM,
+        channel: {
+            key: "today-words-channel",
+        }
+    },
+    {
         name: LIST_COMMANDS.GET_PROFILE,
         url: "get-profile",
         description: "Get discord profile",
@@ -51,6 +61,34 @@ export const baseCommands = [
         repeat_cron_time: "",
         channel: {
             key: "",
+        }
+    },
+    {
+        name: LIST_COMMANDS.UNSUBSCRIBE_WORDS,
+        url: "",
+        description: "Unsubscribe monday words",
+        is_repeat: false,
+        repeat_cron_time: "",
+        channel: {
+            key: "",
+        }
+    },
+    {
+        name: LIST_COMMANDS.SUBSCRIBE_WORDS,
+        url: "",
+        description: "Get monday words",
+        is_repeat: false,
+        repeat_cron_time: "",
+        options: [
+            {
+                name: "channel",
+                description: "The channel to register",
+                type: 7, // Channel type
+                required: true
+            }
+        ],
+        channel: {
+            key: "today-words-channel",
         }
     },
     {

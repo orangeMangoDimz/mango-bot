@@ -16,6 +16,7 @@ client.on(Events.ClientReady, (readyClient) => {
     repeated_commnads.map(command => {
         cron.schedule(command.repeat_cron_time, async () => {
             console.log("Channel id: ", command.channel.key)
+            console.log("uff: ", CHANNEL[command.channel.key])
             // FIX: why command.channel.id is empty
             const channel: Channel | null = await client.channels.fetch(CHANNEL[command.channel.key]);
             if (!channel || !channel.isTextBased()) return;
@@ -31,6 +32,17 @@ client.on(Events.ClientReady, (readyClient) => {
 
 client.on(Events.InteractionCreate, async (interaction: Interaction<CacheType>) => {
     if (!interaction.isChatInputCommand()) return;
+
+    if (interaction.commandName === LIST_COMMANDS.SUBSCRIBE_WORDS) {
+        const channel = interaction.options.getChannel('channel');
+        if (!channel) {
+            interaction.reply("Please mention a channel")
+            return
+        }
+        CHANNEL["today-words-channel"] = channel.id
+        await interaction.reply("Success!");
+        return;
+    }
 
     if (interaction.commandName === LIST_COMMANDS.SUBSCRIBE_NEWS) {
         const channel = interaction.options.getChannel('channel');
@@ -57,6 +69,12 @@ client.on(Events.InteractionCreate, async (interaction: Interaction<CacheType>) 
 
     if (interaction.commandName === LIST_COMMANDS.UNSUBSCRIBE_NEWS) {
         CHANNEL["news-channel"] = ""
+        await interaction.reply("Success!");
+        return;
+    }
+
+    if (interaction.commandName === LIST_COMMANDS.UNSUBSCRIBE_WORDS) {
+        CHANNEL["today-words-channel"] = ""
         await interaction.reply("Success!");
         return;
     }
