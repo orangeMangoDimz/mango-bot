@@ -2,7 +2,7 @@
     "name": "mango-bot",
     "version": "1.0.0",
     "scripts": {
-        "dev": "NODE_ENV=development bun run src/index.ts",
+        "dev": "NODE_ENV=development nodemon --exec bun run src/index.ts",
         "register-command": "NODE_ENV=development bun run src/command.ts",
         "production": "NODE_ENV=production pm2 reload ecosystem.config.js --name 'discord-production'",
         "staging": "NODE_ENV=staging pm2 reload ecosystem.config.js --name 'discord-staging'",
@@ -16,6 +16,7 @@
         "discord.js": "^14.18.0",
         "dotenv": "^16.5.0",
         "node-cron": "^3.0.3",
+        "nodemon": "^3.1.10",
         "undici": "^7.8.0"
     }
 }
